@@ -1,121 +1,60 @@
-![GitHub Repo stars](https://img.shields.io/github/stars/power721/alist-tvbox?style=for-the-badge)
-![GitHub forks](https://img.shields.io/github/forks/power721/alist-tvbox?style=for-the-badge)
-![GitHub contributors](https://img.shields.io/github/contributors/power721/alist-tvbox?style=for-the-badge)
-![GitHub repo size](https://img.shields.io/github/repo-size/power721/alist-tvbox?style=for-the-badge)
-![GitHub issues](https://img.shields.io/github/issues/power721/alist-tvbox?style=for-the-badge)
-![Docker Pulls - xiaoya-tvbox](https://img.shields.io/docker/pulls/haroldli/xiaoya-tvbox?style=for-the-badge)
-![Docker Pulls - alist-tvbox](https://img.shields.io/docker/pulls/haroldli/alist-tvbox?style=for-the-badge)
+# alist-tvbox GHCR 镜像部署说明
 
-# AList-TvBox
-AList proxy server for TvBox, support playlist and search.
+## 1. 镜像地址
 
-[中文文档](doc/README_zh.md)
+```
+ghcr.io/wjjxqx/alist-tvbox:latest
+ghcr.io/wjjxqx/alist-tvbox:<tag>
+```
 
-[OpenList](https://github.com/power721/PowerList)
+示例：
+```
+ghcr.io/wjjxqx/alist-tvbox:1.91.0
+ghcr.io/wjjxqx/alist-tvbox:latest
+```
 
-# Build
+## 2. 前提条件
+
+- OpenWrt 已安装 Docker 和 Docker Compose
+- 网络可访问 `ghcr.io`
+- 端口 `4566`（或自定义）未被占用
+
+## 3. 快速启动
+
 ```bash
-mvn clean package
+docker run -d \
+  --name atv \
+  --restart always \
+  -p 4566:4566 \
+  -v /opt/atv/data:/www/static \
+  ghcr.io/wjjxqx/alist-tvbox:latest
 ```
 
-# Run
+## 4. Docker Compose 示例
+
+```yaml
+version: "3"
+services:
+  alist-tvbox:
+    image: ghcr.io/wjjxqx/alist-tvbox:latest
+    container_name: atv
+    restart: always
+    ports:
+      - "4566:4566"
+    volumes:
+      - /opt/atv/data:/www/static
+```
+
+## 5. 验证
+
 ```bash
-sudo bash -c "$(curl -fsSL https://d.har01d.cn/update_xiaoya.sh)"
+curl http://localhost:4566/api/alist/status
+# 返回 2 表示运行正常
 ```
+
+## 6. 更新
+
 ```bash
-java -jar target/alist-tvbox-1.0.jar
+docker compose pull
+docker compose up -d --force-recreate
 ```
-
-# Docker
-```bash
-./build.sh
-docker run -d -p 4567:4567 --restart=always --name=alist-tvbox alist-tvbox
-```
-Or run container from Docker hub.
-```bash
-docker run -d -p 4567:4567 --restart=always --name=alist-tvbox haroldli/alist-tvbox
-```
-```bash
-docker run -d -p 4567:4567 -p 5344:80 -e ALIST_PORT=5344 -v /opt/alist-tvbox:/data --restart=always --name=xiaoya-tvbox haroldli/xiaoya-tvbox:latest
-```
-username: admin
-
-password: admin
-
-# TvBox Config
-Use this config url `http://ip:4567/sub/0`.
-
-### Customize
-Backed URL support multiple values, use comma as separator.
-e.g.: disable 2 sites by key, change 1 site name by key, add new site.
-```json
-{
-  "sites": [
-    {
-      "key": "js豆瓣",
-      "name": "js豆瓣"
-    },
-    {
-      "key": "测试",
-      "name": "测试",
-      "type": 3,
-      "api": "ATV_ADDRESS/tvbox/libs/drpy.min.js",
-      "searchable": 2,
-      "quickSearch": 0,
-      "filterable": 1
-    }
-  ],
-  "parses": [
-    {
-      "name": "测试1",
-      "type": 3,
-      "url": "测试"
-    }
-  ],
-  "blacklist": {
-    "sites": [
-      "csp_Bili",
-      "csp_Biliych"
-    ],
-    "parses": [
-      "聚合"
-    ]
-  }
-}
-```
-customize sites order by setting `order` field (lower value appears first). Built-in sources and plugins start from 1000, subscription sources start from 2000, sites without order default to 9000.
-```json
-{
-  "sites": [
-    {
-      "key": "豆瓣",
-      "order": 100
-    },
-    {
-      "key": "YouTube",
-      "order": 500
-    }
-  ]
-}
-```
-### Python Spider Plugins
-Python spider plugins are loaded through `csp_PyProxy` from the bundled `spring.jar`. The original Python entry and ext are wrapped like this:
-```json
-{
-  "key": "YouTube",
-  "name": "YouTube",
-  "type": 3,
-  "api": "csp_PyProxy",
-  "jar": "ATV_ADDRESS/spring.jar",
-  "ext": "base64({\"loader\":\"ATV_ADDRESS/Atvp.py\",\"api\":\"ATV_ADDRESS\",\"source\":\"...\",\"token\":\"...\",\"local_proxy_config\":{\"ALI\":{\"enabled\":true,\"concurrency\":20,\"chunk_size\":1024}}})"
-}
-```
-
-`loader`, `local_proxy_config`, and the rest of the Python-side config are all encoded into `ext`. If `local_proxy_config` remains `{}`, local proxy acceleration is not enabled.
-
-# Features
-- Web management UI for AList-TvBox.
-- TvBox subscriptions and aggregated configurations.
-- Multiple AList, Emby, Jellyfin, Feiniu, BiliBili, YouTube, and live-stream sources.
-- Cloud drive accounts and shares for Aliyun, Baidu, Quark, UC, 115, 123, Tianyi, 139, Thunder, PikPak, and GuangYa.
-- Python spider plugin management, plugin filters, local proxy acceleration, and offline download for 115, GuangYa, and Thunder.
