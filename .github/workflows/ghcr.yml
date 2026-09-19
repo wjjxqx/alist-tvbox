@@ -17,20 +17,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Prepare release
-        uses: power721/atv-build-tools/prepare-release@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set telemetry endpoint
-        env:
-          TELEMETRY_URL: ${{ secrets.TELEMETRY_URL }}
-        run: |
-          if [ -n "$TELEMETRY_URL" ]; then
-            mkdir -p src/main/resources
-            printf 'app.telemetry.url=%s\n' "$TELEMETRY_URL" > src/main/resources/telemetry.properties
-          fi
-
       - name: Setup node
         uses: actions/setup-node@v6
         with:
@@ -58,9 +44,6 @@ jobs:
 
       - name: Build with Maven
         run: mvn -B package --file pom.xml
-
-      - name: Verify release artifact
-        uses: power721/atv-build-tools/verify-release@v1
 
       - name: Extract Spring Boot layers
         working-directory: ./target
@@ -156,7 +139,7 @@ jobs:
             fi
             sleep 2
           done
-          if [ "$SUCCESS" != "true" ]; then
+          if [ "$SUCCESS}" != "true" ]; then
             echo "❌ Test failed: AList did not reach status 2 within 60 seconds"
             docker logs test-alist-tvbox
             docker stop test-alist-tvbox
@@ -166,29 +149,3 @@ jobs:
           echo "✅ Test passed"
           docker stop test-alist-tvbox
           docker rm test-alist-tvbox
-
-  create-release:
-    needs: build-and-push-ghcr
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      packages: read
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v7
-        with:
-          name: build-artifacts
-          path: .
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            target/alist-tvbox-1.0.jar
-            target/alist-tvbox-1.0.jar.original
-            target/atv.tar.gz
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
