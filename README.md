@@ -8,7 +8,13 @@ docker run -d \
 --name=alist-tvbox \
 -v /opt/xiaoya:/www/static \
 -v /opt/xiaoya:/opt/alist/data \
+-v /opt/xiaoya:/www \
 ghcr.io/wjjxqx/alist-tvbox:latest
+
+查看密码：
+docker exec -it alist-tvbox cat /data/initial_admin_credentials.txt
+
+
 
 
 ## 1. 镜像地址
