@@ -57,7 +57,7 @@ jobs:
           echo $((($(date +%Y) - 2023) * 366 + $(date +%j | sed 's/^0*//'))).$(date +%H%M) > data/version
           echo "${{ github.event.head_commit.message }}" >> data/version
           cp data/version data/app_version
-          cat data/version
+          echo "version=$(cat data/version)" >> "$GITHUB_OUTPUT"
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v7
@@ -139,7 +139,7 @@ jobs:
             fi
             sleep 2
           done
-          if [ "$SUCCESS}" != "true" ]; then
+          if [ "$SUCCESS" != "true" ]; then
             echo "❌ Test failed: AList did not reach status 2 within 60 seconds"
             docker logs test-alist-tvbox
             docker stop test-alist-tvbox
