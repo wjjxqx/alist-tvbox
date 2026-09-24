@@ -1,5 +1,12 @@
 # alist-tvbox GHCR 镜像部署说明
 
+
+docker run -d -p 4566:4567 --restart=always --name=alist-tvbox \
+  -v /opt/xiaoya:/www/static \
+  -v /opt/xiaoya:/opt/alist/data \
+  -v /opt/xiaoya:/www \
+  ghcr.io/wjjxqx/alist-tvbox:latest
+
 docker pull ghcr.io/wjjxqx/alist-tvbox:latest
 
 docker run -d \
